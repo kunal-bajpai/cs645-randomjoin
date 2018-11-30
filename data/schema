@@ -1,0 +1,8 @@
+part:partkey|name|mfgr|brand|type|size|continer|retailprice|comment|
+supplier:suppkey|name|address|nationkey|phone|acctbal|comment|
+partsupp:partkey|suppkey|availqty|supplycost|comment|
+customer:custkey|name|address|nationkey|phone|acctbal|mktsegment|comment|
+nation:nationkey|name|regionkey|comment|
+lineitem:orderkey|partkey|suppkey|linenumber|quantity|extendedprice|discount|tax|returnflag|linestatus|shipdate|commitdate|receiptdate|shipinstruct|shipmode|comment|
+region:regionkey|name|comment|
+orders:orderkey|custkey|orderstatus|totalprice|orderdate|order-priority|clerk|ship-priority|comment|
