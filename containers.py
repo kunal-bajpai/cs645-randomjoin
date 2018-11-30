@@ -1,3 +1,5 @@
+KEY_FIELDS = ['partkey', 'suppkey', 'custkey', 'nationkey', 'orderkey', 'regionkey']
+
 class Tuple:
     relation = None
     data = None
@@ -7,6 +9,9 @@ class Tuple:
         self.data = data
 
     def __getitem__(self, key):
+        """
+        name = Tuple['name']
+        """
         return self.data[self.relation.schema.index(key)]
 
 class Relation:

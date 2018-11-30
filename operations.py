@@ -1,4 +1,6 @@
-from containers import Tuple, Relation
+import time
+import random
+from containers import *
 
 
 def join(r, s):
@@ -45,10 +47,14 @@ def semijoin(t, target_r):
     Return a list of tuples in target_r that join with t.
     """
 
-    # Figure out which fields are common except 'comment'
+    curr_time = time.time()
+    if t is None:
+        return target_r.data
+
+    # Figure out which fields are common except fields like anme and comment
     common_fields = []
     for field in t.relation.schema:
-        if field != 'comment' and field in target_r.schema:
+        if field in KEY_FIELDS and field in target_r.schema:
             common_fields.append(field)
 
     res = []
@@ -64,6 +70,8 @@ def semijoin(t, target_r):
         # If all match then add to result
         if match:
             res.append(row)
+    print(time.time() - curr_time)
+
     return res
 
 def W(t, target_rels):
@@ -71,3 +79,26 @@ def W(t, target_rels):
     for tup in t:
         res += w(tup, target_rels)
     return res
+
+
+def random_join(relations, W, join_conditions=None):
+
+    t = None
+    S = [None]
+    W_current = W(t)
+
+    for relation in relations:
+        if type(target_r) is tuple:
+            r = target_r[0]
+            r.name = target_r[1]
+            target_r = r
+
+        W_old = W_current
+        semijoin_tuples = semijoin(t, relation)
+        W_current = W(semijoin_tuples)
+        if random.random() < (1 - W_current / W_old):
+            return [None]
+        t = random.choices(semijoin_tuples, weights=[W(t) for t in semijoin_tuples])[0]
+        S.append(t)
+    print([t.data for t in S if t is not None])
+    return S
