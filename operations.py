@@ -77,14 +77,8 @@ def semijoin(t, target_r, join_conditions):
                 res.append(row)
     return res
 
-def W(t, target_rels):
-    res = 0
-    for tup in t:
-        res += w(tup, target_rels)
-    return res
 
-
-def chain_random_join(relations, W, join_conditions=None):
+def chain_random_join(relations, W, join_conditions):
     t = None
     S = []
     W_current = W(t)
@@ -92,6 +86,7 @@ def chain_random_join(relations, W, join_conditions=None):
     for relation, name in relations:
 
         # Temporarily modify table schemas to accomodate for table names
+        # This is needed for join conditions in semijoin to work.
         for i, field in enumerate(relation.schema):
             relation.schema[i] = name + '.' + field
         if relation.key is not None:
@@ -118,3 +113,38 @@ def chain_random_join(relations, W, join_conditions=None):
 
     print([t.data for t in S])
     return S
+
+
+def acyclic_random_join(t, R, W, join_conditions, graph, result):
+    # Temporarily modify table schemas to accomodate for table names.
+    # This is needed for join conditions in semijoin to work.
+    relation, name = R
+    for i, field in enumerate(relation.schema):
+        relation.schema[i] = name + '.' + field
+    if relation.key is not None:
+        relation.key = name + '.' + relation.key
+
+    semijoin_tuples = semijoin(t, relation, join_conditions)
+
+    WR_old = W(t, relation)
+    WR_current = W(semijoin_tuples)
+    if random.random() < (1 - WR_current / WR_old):
+        return -1
+    
+    t = random.choices(semijoin_tuples, weights=[W(t) for t in semijoin_tuples])[0]
+
+    W_old = W(t)
+    W_current = 1
+    for child, child_name in graph[name]:
+        W_current *= W(t, child)
+
+    if random.random() < (1 - W_current / W_old):
+        return -1
+
+    result.append(t)
+    for child in graph[name]:
+        ret = acyclic_random_join(t, child, W, join_conditions, graph, result)
+        if ret == -1:
+            return -1
+
+    return result

@@ -29,43 +29,40 @@ for table, key in tables:
 
 print("Done reading.")
 
-def W(t):
+def W(t, R=None):
     return 1
 
 # Q3
-for i in range(100):
-    chain_random_join(
-    [
-        (data['lineitem'], 'l'),
-        (data['orders'], 'o'),
-        (data['customer'], 'c')
-    ],
-    W,
-    join_conditions=[
-        ('c.custkey', 'o.custkey'),
-        ('l.orderkey', 'o.orderkey')
-    ]
-    )
-
-
-# QX
-#random_join(
+#chain_random_join(
 #    [
-#        (data['nation'], 'n'),
-#        (data['supplier'], 's'),
-#        (data['customer'], 'c'),
+#        (data['lineitem'], 'l'),
 #        (data['orders'], 'o'),
-#        (data['lineitem'], 'l')
+#        (data['customer'], 'c')
 #    ],
 #    W,
 #    join_conditions=[
-#        ('n.nationkey', 's.nationkey'),
-#        ('s.nationkey', 'c.nationkey'),
 #        ('c.custkey', 'o.custkey'),
-#        ('o.orderkey', 'l.orderkey')
+#        ('l.orderkey', 'o.orderkey')
 #    ]
 #)
-#
+
+
+# QX
+print(acyclic_random_join(None, (data['lineitem'], 'l'), W, result=[],
+    join_conditions=[
+        ('n.nationkey', 's.nationkey'),
+        ('s.nationkey', 'c.nationkey'),
+        ('c.custkey', 'o.custkey'),
+        ('o.orderkey', 'l.orderkey')
+    ],
+    graph={
+        's': [(data['nation'], 'n')],
+        'c': [(data['supplier'], 's')],
+        'o': [(data['customer'], 'c')],
+        'n': [],
+        'l': [(data['orders'], 'o')]
+    }
+))
 ##QY
 #random_join(
 #    [
