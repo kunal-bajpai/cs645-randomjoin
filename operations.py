@@ -42,36 +42,39 @@ def join(r, s):
     return result
 
 
-def semijoin(t, target_r):
+def semijoin(t, target_r, join_conditions):
     """
     Return a list of tuples in target_r that join with t.
     """
 
-    curr_time = time.time()
     if t is None:
-        return target_r.data
+        if target_r.key is not None:
+            return list(target_r.data.values())
+        else:
+            return target_r.data
 
-    # Figure out which fields are common except fields like anme and comment
-    common_fields = []
-    for field in t.relation.schema:
-        if field in KEY_FIELDS and field in target_r.schema:
-            common_fields.append(field)
+
+    for cond in join_conditions:
+
+        # Assuming that only one join condition will apply between two relations.
+        # This is true for the 3 queries we are dealing with
+        if cond[1] in t.relation.schema and cond[0] in target_r.schema:
+            match_condition = (cond[1], cond[0])
+            break
+        if cond[0] in t.relation.schema and cond[1] in target_r.schema:
+            match_condition = cond
+            break
 
     res = []
-    for row in target_r:
-        
-        # Check if any common fields mismatch
-        match = True
-        for field in common_fields:
-            if t[field] != row[field]:
-                match = False
-                break
-
-        # If all match then add to result
-        if match:
-            res.append(row)
-    print(time.time() - curr_time)
-
+    if match_condition[1] == target_r.key:
+        try:
+            res.append(target_r[t[match_condition[0]]])
+        except IndexError:
+            pass
+    else:
+        for row in target_r:
+            if t[match_condition[0]] != row[match_condition[1]]:
+                res.append(row)
     return res
 
 def W(t, target_rels):
@@ -81,24 +84,37 @@ def W(t, target_rels):
     return res
 
 
-def random_join(relations, W, join_conditions=None):
-
+def chain_random_join(relations, W, join_conditions=None):
     t = None
-    S = [None]
+    S = []
     W_current = W(t)
 
-    for relation in relations:
-        if type(target_r) is tuple:
-            r = target_r[0]
-            r.name = target_r[1]
-            target_r = r
+    for relation, name in relations:
+
+        # Temporarily modify table schemas to accomodate for table names
+        for i, field in enumerate(relation.schema):
+            relation.schema[i] = name + '.' + field
+        if relation.key is not None:
+            relation.key = name + '.' + relation.key
 
         W_old = W_current
-        semijoin_tuples = semijoin(t, relation)
+        
+        semijoin_tuples = semijoin(t, relation, join_conditions=join_conditions)
+        if len(semijoin_tuples) == 0:
+            return []
+
         W_current = W(semijoin_tuples)
         if random.random() < (1 - W_current / W_old):
-            return [None]
+            return []
         t = random.choices(semijoin_tuples, weights=[W(t) for t in semijoin_tuples])[0]
         S.append(t)
-    print([t.data for t in S if t is not None])
+        
+    # Revert schema changes
+    for relation, name in relations:
+        for i, field in enumerate(relation.schema):
+            relation.schema[i] = relation.schema[i].split('.')[1]
+        if relation.key is not None:
+            relation.key = relation.key.split('.')[1]
+
+    print([t.data for t in S])
     return S

@@ -18,20 +18,34 @@ class Relation:
     name = None
     schema = None
     data = None
+    key = None
 
-    def __init__(self, name, schema):
+    def __init__(self, name, schema, key=None):
         self.name = name
         self.schema = schema
-        self.data = []
+        if key is None:
+            self.data = []
+        else:
+            self.data = {}
+        self.key = key
 
     def add(self, tup):
-        self.data.append(tup)
+        if self.key is None:
+            self.data.append(tup)
+        else:
+            self.data[tup[self.key]] = tup
 
     def __getitem__(self, key):
         return self.data[key]
 
     def __iter__(self):
-        return iter(self.data)
+        if self.key is not None:
+            return iter(self.data.values())
+        else:
+            return iter(self.data)
 
     def __next__(self):
-        return next(self.data)
+        if self.key is not None:
+            return next(self.data.values())
+        else:
+            return next(self.data)
