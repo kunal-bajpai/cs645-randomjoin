@@ -55,7 +55,6 @@ def semijoin(t, target_r, join_conditions):
 
 
     for cond in join_conditions:
-
         # Assuming that only one join condition will apply between two relations.
         # This is true for the 3 queries we are dealing with
         if cond[1] in t.relation.schema and cond[0] in target_r.schema:
@@ -111,7 +110,6 @@ def chain_random_join(relations, W, join_conditions):
         if relation.key is not None:
             relation.key = relation.key.split('.')[1]
 
-    print([t.data for t in S])
     return S
 
 
@@ -120,9 +118,9 @@ def acyclic_random_join(t, R, W, join_conditions, graph, result):
     # This is needed for join conditions in semijoin to work.
     relation, name = R
     for i, field in enumerate(relation.schema):
-        relation.schema[i] = name + '.' + field
+        relation.schema[i] = name + '.' + field.split('.')[-1]
     if relation.key is not None:
-        relation.key = name + '.' + relation.key
+        relation.key = name + '.' + relation.key.split('.')[-1]
 
     semijoin_tuples = semijoin(t, relation, join_conditions)
 
