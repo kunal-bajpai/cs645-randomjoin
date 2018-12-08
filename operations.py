@@ -1,4 +1,5 @@
 import time
+import numpy
 import random
 from containers import *
 
@@ -77,12 +78,13 @@ def semijoin(t, target_r, join_conditions):
     return res
 
 
-def chain_random_join(relations, W, join_conditions):
+def chain_random_join(relations, W, join_conditions, cache):
     t = None
     S = []
-    W_current = W(t)
+    W_current = W(t, relations, cache, join_conditions)[0]
 
-    for relation, name in relations:
+    for i, relation_tuple in enumerate(relations):
+        relation, name = relation_tuple
 
         # Temporarily modify table schemas to accomodate for table names
         # This is needed for join conditions in semijoin to work.
@@ -97,10 +99,13 @@ def chain_random_join(relations, W, join_conditions):
         if len(semijoin_tuples) == 0:
             return []
 
-        W_current = W(semijoin_tuples)
+        W_current = sum([W(t, [relations[ind] for ind in range(i+1, len(relations))], cache, join_conditions)[0] for t in semijoin_tuples])
+        print("Rejecting with prob", W_current, W_old)
         if random.random() < (1 - W_current / W_old):
             return []
-        t = random.choices(semijoin_tuples, weights=[W(t) for t in semijoin_tuples])[0]
+        weights=[W(t, [relations[ind] for ind in range(i+1, len(relations))], cache, join_conditions)[0] for t in semijoin_tuples]
+        tot = sum(weights)
+        t = numpy.random.choice(semijoin_tuples, p=[float(w/tot) for w in weights])
         S.append(t)
         
     # Revert schema changes
@@ -149,7 +154,7 @@ def acyclic_random_join(t, R, W, join_conditions, graph, result):
 
 def ExactWeightChain(t, target_rels, solutions, join_conditions):
     if t is not None and (t.relation.schema[0], t.data[0]) in solutions:
-        return solutions[(t.relation.schema[0], t.data[0])];
+        return (solutions[(t.relation.schema[0], t.data[0])], solutions)
     if len(target_rels) == 0:
         answer = 1;
     else:
@@ -161,10 +166,17 @@ def ExactWeightChain(t, target_rels, solutions, join_conditions):
         results = semijoin(t,relation,join_conditions)
         answer = 0
         for result in results:
-            answer = answer+ ExactWeightChain(result,target_rels[1:], solutions, join_conditions)
+            answer = answer + ExactWeightChain(result,target_rels[1:], solutions, join_conditions)[0]
     if t is not None:
         solutions[(t.relation.schema[0], t.data[0])] = answer
-    return answer
+    
+    # Revert schema changes
+    for relation, name in target_rels:
+        for i, field in enumerate(relation.schema):
+            relation.schema[i] = relation.schema[i].split('.')[-1]
+        if relation.key is not None:
+            relation.key = relation.key.split('.')[-1]
+    return (answer, solutions)
 
 def ExactWeightAcyclic(t, target_rel, solutions, join_conditions,graph):
     relation, name = target_rel
