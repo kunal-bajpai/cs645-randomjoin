@@ -146,3 +146,44 @@ def acyclic_random_join(t, R, W, join_conditions, graph, result):
             return -1
 
     return result
+
+def ExactWeightChain(t, target_rels, solutions, join_conditions):
+    if t is not None and (t.relation.schema[0], t.data[0]) in solutions:
+        return solutions[(t.relation.schema[0], t.data[0])];
+    if len(target_rels) == 0:
+        answer = 1;
+    else:
+        relation, name = target_rels[0]
+        for i, field in enumerate(relation.schema):
+            relation.schema[i] = name + '.' + field.split('.')[-1]
+        if relation.key is not None:
+            relation.key = name + '.' + relation.key.split('.')[-1]
+        results = semijoin(t,relation,join_conditions)
+        answer = 0
+        for result in results:
+            answer = answer+ ExactWeightChain(result,target_rels[1:], solutions, join_conditions)
+    if t is not None:
+        solutions[(t.relation.schema[0], t.data[0])] = answer
+    return answer
+
+def ExactWeightAcyclic(t, target_rel, solutions, join_conditions,graph):
+    relation, name = target_rel
+    for i, field in enumerate(relation.schema):
+        relation.schema[i] = name + '.' + field.split('.')[-1]
+    if relation.key is not None:
+        relation.key = name + '.' + relation.key.split('.')[-1]
+    if t is not None and (t.relation.schema[0], t.data[0],name) in solutions:
+        return solutions[(t.relation.schema[0], t.data[0],name)];
+    semijoin_tuples = semijoin(t, relation, join_conditions)
+    if not graph[name]:
+        solutions[(t.relation.schema[0], t.data[0],name)] = len(semijoin_tuples)
+        return len(semijoin_tuples)
+    answer = 0;
+    for result in semijoin_tuples:
+        product = 1;
+        for child in graph[name]:
+            product = product * ExactWeightAcyclic(result,child,solutions, join_conditions,graph)
+        answer = answer + product;
+    if t is not None:
+        solutions[(t.relation.schema[0], t.data[0],name)] = answer
+    return answer            

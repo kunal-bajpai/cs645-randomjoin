@@ -32,6 +32,34 @@ print("Done reading.")
 def W(t, R=None):
     return 1
 
+start_time = time.time()
+
+print "Vignesh " + str(ExactWeightChain(None, [
+        (data['lineitem'], 'l'),
+        (data['orders'], 'o'),
+        (data['customer'], 'c')
+    ] , {},join_conditions=[('c.custkey', 'o.custkey'),
+        ('l.orderkey', 'o.orderkey')
+    ]))
+
+print time.time() - start_time
+
+start_time = time.time()
+
+print "Vignesh " + str(ExactWeightAcyclic(None, (data['lineitem'], 'l'), {},join_conditions=[
+            ('n.nationkey', 's.nationkey'),
+            ('s.nationkey', 'c.nationkey'),
+            ('c.custkey', 'o.custkey'),
+            ('o.orderkey', 'l.orderkey')
+        ], graph={
+            's': [(data['nation'], 'n')],
+            'c': [(data['supplier'], 's')],
+            'o': [(data['customer'], 'c')],
+            'n': [],
+            'l': [(data['orders'], 'o')]
+        }))
+print time.time() - start_time
+
 # Query 3
 for i in range(10):
     time_start = time.time()
