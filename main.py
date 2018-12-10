@@ -34,6 +34,19 @@ def W(t, R=None):
 
 start_time = time.time()
 
+print "Vignesh " + str(OnlineExploration(None, [
+        (data['lineitem'], 'l'),
+        (data['orders'], 'o'),
+        (data['customer'], 'c')
+    ] , {},join_conditions=[('c.custkey', 'o.custkey'),
+        ('l.orderkey', 'o.orderkey')
+    ]))
+
+print time.time() - start_time
+
+
+start_time = time.time()
+
 print "Vignesh " + str(ExactWeightChain(None, [
         (data['lineitem'], 'l'),
         (data['orders'], 'o'),
