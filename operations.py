@@ -188,16 +188,34 @@ def ExactWeightAcyclic(t, target_rel, solutions, join_conditions,graph):
         solutions[(t.relation.schema[0], t.data[0],name)] = answer
     return answer
 
+def ExtendedOlkien(t, target_rels,solutions,join_conditions):
+    if len(target_rels)==0:
+        return 1
+    relation, name = target_rels[0]
+    if t is None:
+        answer = len(relation.data)
+    else:
+        answer = solutions[relation.name]
+    for relation,name in target_rels[1:]:
+        answer = answer * solutions[relation.name]
+    return answer
+
+def ExtendedOlkienAGM(t,target_rels,solutions,join_conditions):
+    if len(target_rels)==0:
+        return 1
+    answer = 1;
+    for relation,name in target_rels:
+        answer = answer * len(relation.data)
+    return answer
+
 
 def OnlineExploration(t,target_rels,solutions,join_conditions):
     wanderEstimates = {}
     for i in range(10):
         WanderChainJoinEstimates(t,target_rels,wanderEstimates,join_conditions)
     if id(t) in wanderEstimates:
-        print "Value from Wander Join"  + str(wanderEstimates[id(t)])
         return sum(wanderEstimates[id(t)])/len(wanderEstimates[id(t)])
     else:
-        print "Return from Exact Weight"
         return ExactWeightChain(t, target_rels, solutions, join_conditions)
 
 def WanderChainJoinEstimates(t,target_rels,solutions,join_conditions):

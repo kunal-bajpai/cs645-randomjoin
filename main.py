@@ -32,9 +32,33 @@ print("Done reading.")
 def W(t, R=None):
     return 1
 
+maxFrequency = {}
+for table in [data['orders'], data['customer']]:
+    frequency = {}
+    maximum = 0
+    for tuple in table.data:
+        frequency[tuple[0]] = frequency.get(key, 0) + 1
+    for k,v in frequency.items():
+        if v>maximum:
+            maximum = v
+    maxFrequency[table.name] = maximum
+
 start_time = time.time()
 
-print "Vignesh " + str(OnlineExploration(None, [
+print "Vignesh EO" + str(ExactWeightChain(None, [
+        (data['lineitem'], 'l'),
+        (data['orders'], 'o'),
+        (data['customer'], 'c')
+    ] , maxFrequency,join_conditions=[('c.custkey', 'o.custkey'),
+        ('l.orderkey', 'o.orderkey')
+    ]))
+
+print time.time() - start_time
+
+
+start_time = time.time()
+
+print "Vignesh OE " + str(OnlineExploration(None, [
         (data['lineitem'], 'l'),
         (data['orders'], 'o'),
         (data['customer'], 'c')
@@ -47,7 +71,7 @@ print time.time() - start_time
 
 start_time = time.time()
 
-print "Vignesh " + str(ExactWeightChain(None, [
+print "Vignesh EW" + str(ExactWeightChain(None, [
         (data['lineitem'], 'l'),
         (data['orders'], 'o'),
         (data['customer'], 'c')
