@@ -101,6 +101,7 @@ def chain_random_join(relations, W, join_conditions, cache):
             return []
 
         W_current = sum([W(t, [relations[ind] for ind in range(i+1, len(relations))], cache, join_conditions)[0] for t in semijoin_tuples])
+        print("Rejecting with prob", 1 - W_current/W_old)
         if random.random() < (1 - W_current / W_old):
             return []
         weights=[W(t, [relations[ind] for ind in range(i+1, len(relations))], cache, join_conditions)[0] for t in semijoin_tuples]
@@ -189,4 +190,51 @@ def ExactWeightAcyclic(t, target_rel, solutions, join_conditions,graph):
         answer = answer + product;
     if t is not None:
         solutions[(t.relation.schema[0], t.data[0],name)] = answer
-    return answer            
+    return answer
+
+def ExtendedOlken(t, target_rels,solutions,join_conditions):
+    if len(target_rels)==0:
+        return 1
+    relation, name = target_rels[0]
+    if t is None:
+        answer = len(relation.data)
+    else:
+        answer = solutions[relation.name]
+    for relation,name in target_rels[1:]:
+        answer = answer * solutions[relation.name]
+    return (answer, solutions)
+
+def ExtendedOlkenAGM(t,target_rels,solutions,join_conditions):
+    if len(target_rels)==0:
+        return 1
+    answer = 1;
+    for relation,name in target_rels:
+        answer = answer * len(relation.data)
+    return (answer, solutions)
+
+
+def OnlineExploration(t,target_rels,solutions,join_conditions):
+    wanderEstimates = {}
+    for i in range(10):
+        _, wanderEstimates = WanderChainJoinEstimates(t,target_rels,wanderEstimates,join_conditions)
+    if id(t) in wanderEstimates:
+        return sum(wanderEstimates[id(t)])/len(wanderEstimates[id(t)])
+    else:
+        return ExactWeightChain(t, target_rels, solutions, join_conditions)
+
+def WanderChainJoinEstimates(t,target_rels,solutions,join_conditions):
+    if len(target_rels) == 0:
+        answer = 1
+    else:
+        relation, name = target_rels[0]
+        for i, field in enumerate(relation.schema):
+            relation.schema[i] = name + '.' + field.split('.')[-1]
+        if relation.key is not None:
+            relation.key = name + '.' + relation.key.split('.')[-1]
+        results = semijoin(t,relation,join_conditions)
+        randomtuple = random.choice(results)
+        answer = len(results)
+        if answer!=0: 
+            answer = answer * WanderChainJoinEstimates(randomtuple,target_rels[1:],solutions,join_conditions)
+    solutions.setdefault(id(t), []).append(answer)
+    return (answer, solutions)

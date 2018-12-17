@@ -33,24 +33,25 @@ def W(t, R=None):
     return 1
 
 # Query 3
-#relations = [
-#    (data['lineitem'], 'l'),
-#    (data['orders'], 'o'),
-#    (data['customer'], 'c')
-#]
-#join_conditions= [
-#    ('c.custkey', 'o.custkey'),
-#    ('l.orderkey', 'o.orderkey')
-#]
-#
-#print("Precomputing exact weight...")
-#_, cache = ExactWeightChain(None, relations, {}, join_conditions)
-#print("Done.")
-#for i in range(10):
-#    print(i)
-#    time_start = time.time()
-#    print(chain_random_join(relations, ExactWeightChain, join_conditions, cache))
-#    print(time.time() - time_start)
+relations = [
+    (data['lineitem'], 'l'),
+    (data['orders'], 'o'),
+    (data['customer'], 'c')
+]
+join_conditions= [
+    ('c.custkey', 'o.custkey'),
+    ('l.orderkey', 'o.orderkey')
+]
+algo = OnlineExploration  # set this to ExactWeight, ExtendedOlken, ExtendedOlkenAGM, OnlineExploration, etc.
+
+print("Precomputing...")
+_, cache = algo(None, relations, {}, join_conditions)
+print("Done.")
+for i in range(10):
+    print(i)
+    time_start = time.time()
+    print(chain_random_join(relations, algo, join_conditions, cache))
+    print(time.time() - time_start)
 
 # Query X
 #relations = [
@@ -67,7 +68,7 @@ def W(t, R=None):
 #    ('o.orderkey', 'l.orderkey')
 #]
 #
-#print("Precomputing exact weight...")
+#print("Precomputing...")
 #_, cache = ExactWeightChain(None, relations, {}, join_conditions)
 #print("Done.")
 #for i in range(10):
@@ -94,7 +95,7 @@ def W(t, R=None):
 #    ('s.nationkey', 'c2.nationkey'),
 #]
 #
-#print("Precomputing exact weight...")
+#print("Precomputing weight...")
 #_, cache = ExactWeightChain(None, relations, {}, join_conditions)
 #print("Done.")
 #for i in range(10):
