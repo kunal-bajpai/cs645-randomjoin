@@ -214,11 +214,18 @@ def ExtendedOlkenAGM(t,target_rels,solutions,join_conditions):
 
 
 def OnlineExploration(t,target_rels,solutions,join_conditions):
+    if id(t) in solutions:
+        return solutions[id(t)], solutions
     wanderEstimates = {}
+    #Below check is to ensure we do not call OE after we have got results by performing random walks
+    if len(solutions)>0:
+        return ExactWeightChain(t, target_rels, solutions, join_conditions)
     for i in range(10):
         _, wanderEstimates = WanderChainJoinEstimates(t,target_rels,wanderEstimates,join_conditions)
     if id(t) in wanderEstimates:
-        return sum(wanderEstimates[id(t)])/len(wanderEstimates[id(t)])
+        answer = sum(wanderEstimates[id(t)])/len(wanderEstimates[id(t)])
+        solutions[id(t)] = answer
+        return answer, solutions
     else:
         return ExactWeightChain(t, target_rels, solutions, join_conditions)
 
@@ -235,6 +242,7 @@ def WanderChainJoinEstimates(t,target_rels,solutions,join_conditions):
         randomtuple = random.choice(results)
         answer = len(results)
         if answer!=0: 
-            answer = answer * WanderChainJoinEstimates(randomtuple,target_rels[1:],solutions,join_conditions)
+             answer, _ = WanderChainJoinEstimates(randomtuple,target_rels[1:],solutions,join_conditions)
+             answer = answer * len(results)
     solutions.setdefault(id(t), []).append(answer)
     return (answer, solutions)
