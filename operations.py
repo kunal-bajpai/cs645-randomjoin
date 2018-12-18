@@ -215,10 +215,28 @@ def ExtendedOlken(t, target_rels,solutions,join_conditions):
     if t is None:
         answer = len(relation.data)
     else:
-        answer = solutions[relation.name]
+        if relation.name in solutions:
+            answer = findMaximumFrequency(relation)
+        else:
+            answer = solutions[relation.name]
+        solutions[relation.name] = answer
     for relation,name in target_rels[1:]:
-        answer = answer * solutions[relation.name]
+        if relation in solutions:
+            answer = answer * solutions[relation.name]
+        else:
+            solutions[relation.name] = answer * findMaximumFrequency(relation)
+            answer = solutions[relation.name]
     return (answer, solutions)
+
+def findMaximumFrequency(relation):
+    frequency = {}
+    maximum = 0
+    for tuple in relation.data:
+        frequency[tuple[0]] = frequency.get(tuple[0], 0) + 1
+    for k,v in frequency.items():
+        if v>maximum:
+            maximum = v
+    return maximum
 
 def ExtendedOlkenAGM(t,target_rels,solutions,join_conditions):
     if len(target_rels)==0:

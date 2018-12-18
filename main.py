@@ -43,7 +43,7 @@ join_conditions= [
     ('c.custkey', 'o.custkey'),
     ('l.orderkey', 'o.orderkey')
 ]
-algo = OnlineExploration  # set this to ExactWeight, ExtendedOlken, ExtendedOlkenAGM, OnlineExploration, etc.
+algo = ExtendedOlken  # set this to ExactWeight, ExtendedOlken, ExtendedOlkenAGM, OnlineExploration, etc.
 
 print("Precomputing...")
 st = time.time()
