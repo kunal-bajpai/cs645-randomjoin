@@ -94,19 +94,28 @@ def chain_random_join(relations, W, join_conditions, cache):
     for i, relation_tuple in enumerate(relations):
         relation, name = relation_tuple
 
+        st = time.time()
         W_old = W(t, relations, cache, join_conditions)[0]
+        print("Time for first W call = ", time.time() - st)
         
+        st = time.time()
         semijoin_tuples = semijoin(t, relation, join_conditions=join_conditions)
+        print("Time for semijoin", time.time() - st)
         if len(semijoin_tuples) == 0:
             return []
 
+        st = time.time()
         W_current = sum([W(t, [relations[ind] for ind in range(i+1, len(relations))], cache, join_conditions)[0] for t in semijoin_tuples])
+        print("Time for second W call = ", time.time() - st)
         print("Rejecting with prob", 1 - W_current/W_old)
         if random.random() < (1 - W_current / W_old):
             return []
+
+        st = time.time()
         weights=[W(t, [relations[ind] for ind in range(i+1, len(relations))], cache, join_conditions)[0] for t in semijoin_tuples]
         tot = sum(weights)
         t = numpy.random.choice(semijoin_tuples, p=[float(w/tot) for w in weights])
+        print("Time for random choice = ", time.time() - st)
         S.append(t)
        
     return S
@@ -147,10 +156,18 @@ def acyclic_random_join(t, R, W, join_conditions, graph, result):
     return result
 
 def ExactWeightChain(t, target_rels, solutions, join_conditions):
-    if t is not None and (t.relation.schema[0], t.data[0]) in solutions:
+    try:
         return (solutions[(t.relation.schema[0], t.data[0])], solutions)
+    except AttributeError:
+        try:
+            return (solutions["None"], solutions)
+        except KeyError:
+            pass
+    except KeyError:
+        pass
+
     if len(target_rels) == 0:
-        answer = 1;
+        answer = 1
     else:
         relation, name = target_rels[0]
         for i, field in enumerate(relation.schema):
@@ -159,13 +176,12 @@ def ExactWeightChain(t, target_rels, solutions, join_conditions):
             relation.key = name + '.' + relation.key.split('.')[-1]
 
         results = semijoin(t,relation,join_conditions)
-
-        answer = 0
-        for result in results:
-            answer = answer + ExactWeightChain(result,target_rels[1:], solutions, join_conditions)[0]
+        answer = sum([ExactWeightChain(result,target_rels[1:], solutions, join_conditions)[0] for result in results])
         
-    if t is not None:
+    try:
         solutions[(t.relation.schema[0], t.data[0])] = answer
+    except AttributeError:
+        solutions["None"] = answer
     
     
     return (answer, solutions)
@@ -214,8 +230,10 @@ def ExtendedOlkenAGM(t,target_rels,solutions,join_conditions):
 
 
 def OnlineExploration(t,target_rels,solutions,join_conditions):
-    if id(t) in solutions:
+    try:
         return solutions[id(t)], solutions
+    except KeyError:
+        pass
     wanderEstimates = {}
     #Below check is to ensure we do not call OE after we have got results by performing random walks
     if len(solutions)>0:

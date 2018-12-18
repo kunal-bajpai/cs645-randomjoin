@@ -6,6 +6,7 @@ from operations import *
 schema = {}
 
 print("Reading data...")
+st = time.time()
 with open("data/schema") as f:
     for row in f:
         tablename, fields = row.split(':')
@@ -23,11 +24,11 @@ data = {}
 
 for table, key in tables:
     data[table] = Relation(table, schema[table], key=key)
-    with open("data/{}.tbl".format(table)) as f:
+    with open("../data/{}.tbl".format(table)) as f:
         for row in f:
             data[table].add(Tuple(data[table], tuple(row.split('|')[:-1])))
 
-print("Done reading.")
+print("Done reading. Time to read = ", time.time() - st)
 
 def W(t, R=None):
     return 1
@@ -45,6 +46,32 @@ join_conditions= [
 algo = OnlineExploration  # set this to ExactWeight, ExtendedOlken, ExtendedOlkenAGM, OnlineExploration, etc.
 
 print("Precomputing...")
+st = time.time()
+_, cache = algo(None, relations, {}, join_conditions)
+print("Done. Precompute time = ", time.time() - st)
+for i in range(10):
+    print(i)
+    time_start = time.time()
+    print(chain_random_join(relations, algo, join_conditions, cache))
+    print("Sample time = ", time.time() - time_start)
+
+# Query X
+algo = OnlineExploration
+relations = [
+    (data['lineitem'], 'l'),
+    (data['orders'], 'o'),
+    (data['customer'], 'c'),
+    (data['supplier'], 's'),
+    (data['nation'], 'n')
+]
+join_conditions= [
+    ('n.nationkey', 's.nationkey'),
+    ('s.nationkey', 'c.nationkey'),
+    ('c.custkey', 'o.custkey'),
+    ('o.orderkey', 'l.orderkey')
+]
+
+print("Precomputing...")
 _, cache = algo(None, relations, {}, join_conditions)
 print("Done.")
 for i in range(10):
@@ -52,30 +79,6 @@ for i in range(10):
     time_start = time.time()
     print(chain_random_join(relations, algo, join_conditions, cache))
     print(time.time() - time_start)
-
-# Query X
-#relations = [
-#    (data['lineitem'], 'l'),
-#    (data['orders'], 'o'),
-#    (data['customer'], 'c'),
-#    (data['supplier'], 's'),
-#    (data['nation'], 'n')
-#]
-#join_conditions= [
-#    ('n.nationkey', 's.nationkey'),
-#    ('s.nationkey', 'c.nationkey'),
-#    ('c.custkey', 'o.custkey'),
-#    ('o.orderkey', 'l.orderkey')
-#]
-#
-#print("Precomputing...")
-#_, cache = ExactWeightChain(None, relations, {}, join_conditions)
-#print("Done.")
-#for i in range(10):
-#    print(i)
-#    time_start = time.time()
-#    print(chain_random_join(relations, ExactWeightChain, join_conditions, cache))
-#    print(time.time() - time_start)
 
 
 # Query Y
