@@ -105,13 +105,17 @@ def chain_random_join(relations, W, join_conditions, cache):
             return []
 
         st = time.time()
-        W_current = sum([W(t, [relations[ind] for ind in range(i+1, len(relations))], cache, join_conditions)[0] for t in semijoin_tuples])
-        print("Time for second W call = ", time.time() - st)
+        weights = [W(t, [relations[ind] for ind in range(i+1, len(relations))], cache, join_conditions)[0] for t in semijoin_tuples]
+        print("Time for collecting weights = ", time.time() - st)
+        st = time.time()
+        W_current = sum(weights)
+        print("Time for calculating sum of second W call = ", time.time() - st)
         print("Rejecting with prob", 1 - W_current/W_old)
         if random.random() < (1 - W_current / W_old):
             return []
 
         st = time.time()
+        print("Number of tuples", len(semijoin_tuples))
         weights=[W(t, [relations[ind] for ind in range(i+1, len(relations))], cache, join_conditions)[0] for t in semijoin_tuples]
         tot = sum(weights)
         t = numpy.random.choice(semijoin_tuples, p=[float(w/tot) for w in weights])
@@ -206,8 +210,6 @@ def ExactWeightAcyclic(t, target_rel, solutions, join_conditions,graph):
         answer = answer + product;
     if t is not None:
         solutions[(t.relation.schema[0], t.data[0],name)] = answer
-    return answer
-
 def ExtendedOlken(t, target_rels,solutions,join_conditions):
     if len(target_rels)==0:
         return 1

@@ -34,98 +34,54 @@ def W(t, R=None):
     return 1
 
 # Query 3
-relations = [
-    (data['lineitem'], 'l'),
-    (data['orders'], 'o'),
-    (data['customer'], 'c')
-]
-join_conditions= [
-    ('c.custkey', 'o.custkey'),
-    ('l.orderkey', 'o.orderkey')
-]
-algo = OnlineExploration  # set this to ExactWeight, ExtendedOlken, ExtendedOlkenAGM, OnlineExploration, etc.
+def Q3(algo):
+    relations = [
+        (data['lineitem'], 'l'),
+        (data['orders'], 'o'),
+        (data['customer'], 'c')
+    ]
+    join_conditions= [
+        ('c.custkey', 'o.custkey'),
+        ('l.orderkey', 'o.orderkey')
+    ]
 
-print("Precomputing...")
-st = time.time()
-_, cache = algo(None, relations, {}, join_conditions)
-print("Done. Precompute time = ", time.time() - st)
-for i in range(10):
-    print(i)
-    time_start = time.time()
-    print(chain_random_join(relations, algo, join_conditions, cache))
-    print("Sample time = ", time.time() - time_start)
+    print("Precomputing...")
+    st = time.time()
+    _, cache = algo(None, relations, {}, join_conditions)
+    print("Done. Precompute time = ", time.time() - st)
+    for i in range(5):
+        print(i)
+        time_start = time.time()
+        print(chain_random_join(relations, algo, join_conditions, cache))
+        print("Sample time = ", time.time() - time_start)
 
 # Query X
-algo = OnlineExploration
-relations = [
-    (data['lineitem'], 'l'),
-    (data['orders'], 'o'),
-    (data['customer'], 'c'),
-    (data['supplier'], 's'),
-    (data['nation'], 'n')
-]
-join_conditions= [
-    ('n.nationkey', 's.nationkey'),
-    ('s.nationkey', 'c.nationkey'),
-    ('c.custkey', 'o.custkey'),
-    ('o.orderkey', 'l.orderkey')
-]
+def QX(algo):
+    relations = [
+        (data['lineitem'], 'l'),
+        (data['orders'], 'o'),
+        (data['customer'], 'c'),
+        (data['supplier'], 's'),
+        (data['nation'], 'n')
+    ]
+    join_conditions= [
+        ('n.nationkey', 's.nationkey'),
+        ('s.nationkey', 'c.nationkey'),
+        ('c.custkey', 'o.custkey'),
+        ('o.orderkey', 'l.orderkey')
+    ]
 
-print("Precomputing...")
-_, cache = algo(None, relations, {}, join_conditions)
-print("Done.")
-for i in range(10):
-    print(i)
-    time_start = time.time()
-    print(chain_random_join(relations, algo, join_conditions, cache))
-    print(time.time() - time_start)
+    print("Precomputing...")
+    st = time.time()
+    _, cache = algo(None, relations, {}, join_conditions)
+    print("Done. Precompute time = ", time.time() - st)
+    for i in range(5):
+        print(i)
+        time_start = time.time()
+        print(chain_random_join(relations, algo, join_conditions, cache))
+        print("Sample time = ", time.time() - time_start)
 
-
-# Query Y
-#relations = [
-#    (data['lineitem'], 'l2'),
-#    (data['orders'], 'o2'),
-#    (data['customer'], 'c2'),
-#    (data['supplier'], 's'),
-#    (data['customer'], 'c1'),
-#    (data['orders'], 'o1')
-#]
-#join_conditions= [
-#    ('o1.custkey', 'c1.custkey'),
-#    ('l2.orderkey', 'o2.orderkey'),
-#    ('o2.custkey', 'c2.custkey'),
-#    ('c1.nationkey', 's.nationkey'),
-#    ('s.nationkey', 'c2.nationkey'),
-#]
-#
-#print("Precomputing weight...")
-#_, cache = ExactWeightChain(None, relations, {}, join_conditions)
-#print("Done.")
-#for i in range(10):
-#    time_start = time.time()
-#    res = chain_random_join(relation, ExactWeightChain, join_conditions, cache)
-#    
-#    # reset relation schemas and key names
-#    for table in data.keys():
-#        for i, field in enumerate(data[table].schema):
-#            data[table].schema[i] = data[table].schema[i].split('.')[-1]
-#        if data[table].key is not None:
-#            data[table].key = data[table].key.split('.')[-1]
-#
-#    rel = Relation('joined', ['orderkey', 'partkey'], None)
-#    tup = Tuple(rel, (res[-1]['orderkey'], res[0]['partkey']))
-#
-#    semijoin_tuples = semijoin(tup, data['lineitem'], join_conditions=[('orderkey', 'orderkey'), ('partkey', 'partkey')])
-#    M = len(semijoin_tuples)
-#    if random.random() < (1 - len(semijoin_tuples) / M):
-#        res = []
-#    else:
-#        res.append(random.choices(semijoin_tuples)[0])
-#    
-#    # reset relation schemas and key names
-#    for table in data.keys():
-#        for i, field in enumerate(data[table].schema):
-#            data[table].schema[i] = data[table].schema[i].split('.')[-1]
-#        if data[table].key is not None:
-#            data[table].key = data[table].key.split('.')[-1]
-#    print(time.time() - time_start)
+Q3(ExactWeightChain)
+QX(ExactWeightChain)
+Q3(OnlineExploration)
+QX(OnlineExploration)
