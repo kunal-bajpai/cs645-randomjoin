@@ -85,8 +85,8 @@ def findMaximumFrequency(relation):
 
 def ExtendedOlkenAGM(t,target_rels,solutions,join_conditions):
     if len(target_rels)==0:
-        return 1
-    answer = 1;
+        return (1, solutions)
+    answer = 1
     for relation,name in target_rels:
         answer = answer * len(relation.data)
     return (answer, solutions)

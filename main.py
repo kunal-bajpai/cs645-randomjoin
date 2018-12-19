@@ -8,6 +8,7 @@ from algos import *
 
 data = read_data()
 
+Q3(data, ExtendedOlken)
 Q3(data, ExactWeightChain)
 QX(data, ExactWeightChain)
 Q3(data, OnlineExploration)
