@@ -26,7 +26,7 @@ def read_data():
 
     for table, key in tables:
         data[table] = Relation(table, schema[table], key=key)
-        with open("./data/{}.tbl".format(table)) as f:
+        with open("../data/{}.tbl".format(table)) as f:
             for row in f:
                 data[table].add(Tuple(data[table], tuple(row.split('|')[:-1])))
 
@@ -104,8 +104,8 @@ def chain_random_join(relations, W, join_conditions, cache):
         W_current = sum(weights)
         print("Time for calculating sum of second W call = ", time.time() - st)
         print("Rejecting with prob", 1 - W_current/W_old)
-        if random.random() < (1 - W_current / W_old):
-            return []
+        #if random.random() < (1 - W_current / W_old):
+        #    return []
 
         st = time.time()
         print("Number of tuples", len(semijoin_tuples))

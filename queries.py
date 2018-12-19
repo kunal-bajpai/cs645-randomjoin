@@ -19,7 +19,8 @@ def Q3(data, algo):
     _, cache = algo(None, relations, {}, join_conditions)
     print("Done. Precompute time = ", time.time() - st)
     for i in range(5):
-        print(i)
+        print()
+        print("Sampling tuple", i)
         time_start = time.time()
         print(chain_random_join(relations, algo, join_conditions, cache))
         print("Sample time = ", time.time() - time_start)
@@ -45,7 +46,8 @@ def QX(data, algo):
     _, cache = algo(None, relations, {}, join_conditions)
     print("Done. Precompute time = ", time.time() - st)
     for i in range(5):
-        print(i)
+        print()
+        print("Sampling tuple", i)
         time_start = time.time()
         print(chain_random_join(relations, algo, join_conditions, cache))
         print("Sample time = ", time.time() - time_start)
