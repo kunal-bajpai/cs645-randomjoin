@@ -104,7 +104,7 @@ def chain_random_join(relations, W, join_conditions, cache):
         W_current = sum(weights)
         print("Time for calculating sum of second W call = ", time.time() - st)
         print("Rejecting with prob", 1 - W_current/W_old)
-        if i > 1 and random.random() < (1 - W_current / W_old):
+        if random.random() < (1 - W_current / W_old):
             return []
 
         st = time.time()
